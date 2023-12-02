@@ -1,0 +1,17 @@
+{
+  "name": "dls-ai-chatbot",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "start": "wrangler dev"
+  },
+  "devDependencies": {
+    "wrangler": "^3.18.0"
+  },
+  "dependencies": {
+    "@cloudflare/ai": "^1.0.36",
+    "langchain": "^0.0.200"
+  }
+}

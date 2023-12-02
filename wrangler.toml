@@ -1,0 +1,18 @@
+name = "dls-ai-chatbot"
+main = "src/index.js"
+compatibility_date = "2023-11-21"
+
+# AI Embedding Model
+[ai]
+binding = "AI"
+
+# Vector Database
+[[vectorize]]
+binding = "VECTORIZE_INDEX" # available within your Worker on env.VECTORIZE_INDEX
+index_name = "vector-dls-index"
+
+# Original Data
+[[d1_databases]]
+binding = "DB" # available in your Worker on env.DB
+database_name = "dls_data"
+database_id = "962827f8-44c8-4d8b-881a-67852a48bbb7"
