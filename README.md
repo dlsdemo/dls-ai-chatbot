@@ -38,6 +38,41 @@ https://dls-ai.dlsdemo.com/?query=Which%20regions%20does%20Regional%20Services%2
 
 Recommended use is through the UI [ai.dlsdemo.com](https://ai.dlsdemo.com/).
 
+### Knowledge Base
+
+By running the `/demo` endpoint, the Workers queries a D1 database to data to the Vectorize Vector Store: our Knowledge Base.
+
+In order to clear / delete the entire Knowledge Base (Vectorize Vector Store), simply run the `/clear` endpoint.
+
+### Paths
+
+Retrieve the Vector Store details:
+```
+/vector-store
+```
+
+Run a Vector Search `similaritySearchWithScore` for similar documents in the knowledge base:
+```
+/vector-search?query="what%20is%20regional%20services?"
+```
+
+## Development
+
+When inside the working directory, install all dependencies:
+```
+npm install
+```
+
+Run a local server for developing:
+```
+npx wrangler dev --remote
+```
+
+Deploy the project:
+```
+npx wrangler deploy
+```
+
 ## Future Updates
 
 Keep the package and models up2date by periodically reviewing the [DevDocs](https://developers.cloudflare.com/workers-ai/) and running:

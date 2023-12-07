@@ -69,14 +69,22 @@ export default {
 		including its configured `dimensions` and distance `metric`
 		*/
 		if (url.pathname === '/vector-store') {
-			const details = await dlsVector.describe();
-			// let ids = ['1'];
-			// const vectors = await dlsVector.getByIds(ids);
-			return new Response(JSON.stringify(details, null, 2), {
-				headers: {
-					'content-type': 'application/json;charset=UTF-8',
-				},
-			});
+			try {
+				const details = await dlsVector.describe();
+				// let ids = ['1'];
+				// const vectors = await dlsVector.getByIds(ids);
+				return new Response(JSON.stringify(details, null, 2), {
+					headers: {
+						'content-type': 'application/json;charset=UTF-8',
+					},
+				});
+			} catch (error) {
+				const customErrorMessage = 'ERROR when retrieving Vector Store details';
+				console.log(customErrorMessage);
+				console.error('ERROR message:', error);
+				const customErrorResponse = customErrorMessage + '; ' + error.message;
+				return new Response(customErrorResponse, { status: 500, headers: { 'Content-Type': 'text/plain' } });
+			}
 		}
 		// ADD DATA TO VECTORIZE VECTOR STORE
 		/* 
@@ -84,56 +92,91 @@ export default {
 		data to Vector Store in Vectorize
 		*/
 		else if (url.pathname === '/demo') {
-			// Query D1 Data Localization Suite (DLS) Database
-			const DBquery =
-				'SELECT * FROM dls_general UNION SELECT * FROM dls_key_management UNION SELECT * FROM dls_regional_services UNION SELECT * FROM dls_customer_metadata_boundary;';
-			const results = await env.DB.prepare(DBquery).all();
-			const transformedArray = [];
-			// Organize data document
-			for (let i = 0; i < results.results.length; i++) {
-				const json = results.results[i];
-				const transformedObject = {
-					pageContent: json.text,
-					metadata: {},
+			try {
+				// Query D1 Data Localization Suite (DLS) Database
+				const DBquery =
+					'SELECT * FROM dls_general UNION SELECT * FROM dls_key_management UNION SELECT * FROM dls_regional_services UNION SELECT * FROM dls_customer_metadata_boundary;';
+				const results = await env.DB.prepare(DBquery).all();
+				const transformedArray = [];
+				// Organize data document
+				for (let i = 0; i < results.results.length; i++) {
+					const json = results.results[i];
+					const transformedObject = {
+						pageContent: json.text,
+						metadata: {}, // empty metadata, for now!
+					};
+					transformedArray.push(transformedObject);
+				}
+				const ids = Array.from({ length: transformedArray.length }, (_, i) => (i + 1).toString());
+				const json = {
+					data: transformedArray,
+					ids: ids,
 				};
-				transformedArray.push(transformedObject);
+				// Add data to Vectorize Vector Store
+				await store.addDocuments(json.data, { ids: json.ids });
+				return Response.json({ success: true });
+			} catch (error) {
+				const customErrorMessage = 'ERROR when querying D1 Database';
+				console.log(customErrorMessage);
+				console.error('ERROR message:', error);
+				const customErrorResponse = customErrorMessage + '; ' + error.message;
+				return new Response(customErrorResponse, { status: 500, headers: { 'Content-Type': 'text/plain' } });
 			}
-			const ids = Array.from({ length: transformedArray.length }, (_, i) => (i + 1).toString());
-			const json = {
-				data: transformedArray,
-				ids: ids,
-			};
-			// Add data to Vectorize Vector Store
-			await store.addDocuments(json.data, { ids: json.ids });
-			return Response.json({ success: true });
 		} // DELETE VECTORS
 		/* 
 		Get the total vectorsCount and delete all vectors,
 		essentially starting from scratch
 		*/
 		else if (url.pathname === '/clear') {
-			const details = await dlsVector.describe();
-			const total_num = details.vectorsCount;
-			const idsToDelete = [];
-			for (let i = 1; i <= total_num; i++) {
-				idsToDelete.push(i.toString());
+			try {
+				const details = await dlsVector.describe();
+				const total_num = details.vectorsCount;
+				const idsToDelete = [];
+				for (let i = 1; i <= total_num; i++) {
+					idsToDelete.push(i.toString());
+				}
+				await store.delete({ ids: idsToDelete });
+				return Response.json({ success: true });
+			} catch (error) {
+				const customErrorMessage = 'ERROR when deleting Knowledge Base, Vectorize Vector Store';
+				console.log(customErrorMessage);
+				console.error('ERROR message:', error);
+				const customErrorResponse = customErrorMessage + '; ' + error.message;
+				return new Response(customErrorResponse, { status: 500, headers: { 'Content-Type': 'text/plain' } });
 			}
-			await store.delete({ ids: idsToDelete });
-			return Response.json({ success: true });
+		}
+		// VECTOR SEARCH
+		/* 
+		Searching vector store (knowledge base) for similar documents
+		*/
+		else if (url.pathname === '/vector-search') {
+			// similaritySearch
+			// similaritySearchWithScore
+			try {
+				const result = await store.similaritySearchWithScore(query, 4); // similaritySearchWithScore, K-Value
+				const similaritySearchResult = JSON.stringify(result, null, 2);
+				console.log('similaritySearch', similaritySearchResult);
+				// TEST: Return the most similar vector
+				return new Response(similaritySearchResult, {
+					headers: {
+						'content-type': 'application/json;charset=UTF-8',
+					},
+				});
+			} catch (error) {
+				const customErrorMessage = 'ERROR when searching Vector Store (Knowledge Base) for similar documents';
+				console.log(customErrorMessage);
+				console.error('ERROR message:', error);
+				const customErrorResponse = customErrorMessage + '; ' + error.message;
+				return new Response(customErrorResponse, { status: 500, headers: { 'Content-Type': 'text/plain' } });
+			}
 		}
 
 		// VECTOR SEARCH
 		/* 
 		Searching vector store for similar documents
 		*/
-		const result = await store.similaritySearch(query, 1); // similaritySearchWithScore, K-Value
-		console.log('similaritySearch', result);
-		// TEST: Return the most similar vector
-		// return new Response(JSON.stringify(result, null, 2), {
-		// 	headers: {
-		// 		'content-type': 'application/json;charset=UTF-8',
-		// 	},
-		// });
+		const result = await store.similaritySearch(query, 1); // returning the first reponse only
+		console.log('similaritySearch', JSON.stringify(result, null, 2));
 		// Adding Context
 		let contextMessage;
 		if (result && result[0] && result[0].pageContent) {
@@ -144,7 +187,7 @@ export default {
 			contextMessage = 'Could not find any relevant information in the knowledge base. Recommend to review the Cloudflare documentation.';
 			console.log('ERROR', contextMessage);
 		}
-		const systemPrompt = `When answering the question or responding, use the context provided, if it is provided and relevant to the topic of Cloudflare Data Localization Suite (DLS). Limit your answers to maximum 250 words.`;
+		const systemPrompt = `When answering the question or responding, use the context provided, if it is provided and relevant to the topic of Cloudflare Data Localization Suite (DLS). Limit your answers to maximum 250 words and finished sentences. If you don't know the answer, just say that you don't know, don't try to make up an answer.`;
 		// LLM Context and User Query
 		const messages = [
 			{ role: 'system', content: contextMessage },
