@@ -194,10 +194,25 @@ export default {
 			{ role: 'system', content: systemPrompt },
 			{ role: 'user', content: query },
 		];
+
+		// STREAMING RESPONSES
+		// https://developers.cloudflare.com/workers-ai/models/text-generation/#using-streaming
+		if (url.pathname === '/streaming') {
+			const response = await ai.run('@cf/meta/llama-2-7b-chat-fp16', {
+				stream: true,
+				messages,
+			});
+			// STREAMING RESPONSE
+			return new Response(response, {
+				headers: {
+					'content-type': 'text/event-stream',
+				},
+			});
+		}
+
 		// Run LLM Embedding Model
 		// https://developers.cloudflare.com/workers-ai/models/text-generation/#available-embedding-models
 		const response = await ai.run('@cf/meta/llama-2-7b-chat-fp16', { messages });
-
 		// FINAL RESPONSE
 		return new Response(JSON.stringify(response, null, 2), {
 			headers, // CORS Headers

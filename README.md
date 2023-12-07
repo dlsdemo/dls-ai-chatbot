@@ -53,7 +53,12 @@ Retrieve the Vector Store details:
 
 Run a Vector Search `similaritySearchWithScore` for similar documents in the knowledge base:
 ```
-/vector-search?query="what%20is%20regional%20services?"
+/vector-search?query=what%20is%20regional%20services?
+```
+
+Get streaming responses:
+```
+/streaming?query=what%20is%20regional%20services?
 ```
 
 ## Development
