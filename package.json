@@ -12,6 +12,6 @@
   },
   "dependencies": {
     "@cloudflare/ai": "^1.0.41",
-    "langchain": "^0.0.205"
+    "langchain": "^0.0.206"
   }
 }
