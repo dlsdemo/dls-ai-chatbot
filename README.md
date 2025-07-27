@@ -12,7 +12,11 @@ An experimental Retrieval Augmented Generation (RAG) AI on [Cloudflare Data Loca
 
 ## Knowledge Base Data & Vector Store
 
-The entire knowledge base data on Cloudflare Data Localization Suite (DLS) is stored in the [Cloudflare D1](https://developers.cloudflare.com/d1/) database `dls_data` across multiple tables.
+The entire knowledge base data on Cloudflare Data Localization Suite (DLS) is stored in the [Cloudflare D1](https://developers.cloudflare.com/d1/) database `dls_data_v2` across multiple tables.
+
+```
+npx wrangler d1 execute dls_data_v2 --remote --file=./schema.sql
+```
 
 The Model / Embeddings API used for the knowledge base data is `@cf/baai/bge-base-en-v1.5` with `768` output dimensions using distance metrics `cosine`.
 

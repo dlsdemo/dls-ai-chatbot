@@ -8,10 +8,10 @@
     "start": "wrangler dev"
   },
   "devDependencies": {
-    "wrangler": "^3.19.0"
+    "wrangler": "^4.26.0"
   },
   "dependencies": {
-    "@cloudflare/ai": "^1.0.41",
-    "langchain": "^0.0.205"
+    "@langchain/cloudflare": "^0.1.0",
+    "langchain": "^0.3.30"
   }
 }
